@@ -42,6 +42,7 @@ jobs:
         id: version
         run: |
            TAG=1.0.${GITHUB_RUN_NUMBER}
+           echo "image_tag=$TAG" >> $GITHUB_OUTPUT
       - name: azure oidc federated login
         uses: azure/login@v3
         with:
@@ -49,24 +50,21 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
-      - name: Azure CLI script
+      - name: docker step with ACR
         uses: azure/cli@v2
         with:
           azcliversion: latest
           inlineScript: |
-            az account show
-  helmpackage:
-    needs: dockerBuild
-    runs-on: ubuntu-latest
-    permissions: 
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-      - name: helm install
-        uses: Azure/setup-helm@v3
-      - name: helm package
+            az acr login --name mylabkrnetwork
+            docker build -t mylabkrnetwork.azurecr.io/addressbook:${{ steps.version.outputs.image_tag }} . -f Dockerfile
+            docker push mylabkrnetwork.azurecr.io/addressbook:${{ steps.version.outputs.image_tag }}
+      - name: install helm
+        uses: azure/setup-helm@v4
+      - name: helm package push
         run: |
-          helm package helm/addressbook
+          TOKEN=$( az acr login --name mylabkrnetwork --expose-token --output tsv --query accessToken )
+          helm registry login mylabkrnetwork.azurecr.io --username "00000000-0000-0000-0000-000000000000" --password $TOKEN
+          helm package helm/addressbook --version ${{ steps.version.outputs.image_tag }} --app-version ${{ steps.version.outputs.image_tag }} 
+          helm push *.tgz oci://mylabkrnetwork.azurecr.io/helm
+
 
