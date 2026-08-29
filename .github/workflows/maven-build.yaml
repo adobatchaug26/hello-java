@@ -38,6 +38,7 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           name: targetJar
+          path: target
       - name: build tag generation
         id: version
         run: |
