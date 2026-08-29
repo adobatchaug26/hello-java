@@ -51,10 +51,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: false
       - name: docker login
-        uses: azure/cli@v2
-        with:
-          azcliversion: latest
-          inlineScript: |
+        run: |
             az acr login --name mylabkrnetwork
       - uses: docker/build-push-action@v7
         name: docker build and push
