@@ -1,9 +1,10 @@
 name: Build CI
-on:
-  workflow_dispatch:
 permissions:
   id-token: write
   contents: read
+  packages: write
+on:
+  workflow_dispatch:
 env:
   JAVA_VER: 17
   ACR_NAME: placeholder
@@ -30,9 +31,6 @@ jobs:
   dockerBuild:
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
