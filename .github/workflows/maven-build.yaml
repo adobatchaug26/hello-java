@@ -31,6 +31,8 @@ jobs:
   dockerBuild:
     needs: build
     runs-on: self-hosted
+    outputs:
+      image_tag: ${{ steps.version.outputs.image_tag }} 
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
